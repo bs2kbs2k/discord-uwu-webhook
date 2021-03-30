@@ -1,10 +1,10 @@
 [package]
 name = "discord-uwu-webhook"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["bs2kbs2k <bs2k@naver.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/bs2kbs2k/discord-uwu-webhook"
 
 [dependencies]
 uwuify = "0.2.1"
