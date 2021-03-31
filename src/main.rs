@@ -4,13 +4,12 @@
 use std::env;
 
 use serde_json::json;
-use serenity::http::CacheHttp;
+use serenity::http::AttachmentType;
 use serenity::{
     async_trait,
     model::{channel::Message, gateway::Ready},
     prelude::*,
 };
-use std::iter::FromIterator;
 
 struct Handler;
 
@@ -52,9 +51,9 @@ impl EventHandler for Handler {
             let nick = msg
                 .author_nick(&ctx)
                 .await
-                .unwrap_or(msg.author.name.clone());
-            webhook
-                .execute(&ctx, true, |mut w| {
+                .unwrap_or_else(|| msg.author.name.clone());
+            if let Err(why) = webhook
+                .execute(&ctx, true, |w| {
                     w.avatar_url(
                         msg.author
                             .avatar_url()
@@ -62,9 +61,19 @@ impl EventHandler for Handler {
                     )
                     .content(uwuifier::uwuify_str_sse(&*msg.content))
                     .username(nick)
+                    .files(
+                        msg.attachments
+                            .iter()
+                            .map(|a| AttachmentType::Image(&*a.url)),
+                    )
                 })
-                .await;
-            msg.delete(&ctx).await;
+                .await
+            {
+                return eprintln!("Error executing webhook: {:?}", why);
+            };
+            if let Err(why) = msg.delete(&ctx).await {
+                return eprintln!("Error deleting message: {:?}", why);
+            };
         }
     }
 
@@ -82,7 +91,7 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     // Configure the client with your Discord bot token in the environment.
-    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
+    let token = env::var("DISCORD_TOKEN").expect("Expected a token in $DISCORD_TOKEN");
 
     // Create a new instance of the Client, logging in as a bot. This will
     // automatically prepend your bot token with "Bot ", which is a requirement
@@ -90,7 +99,7 @@ async fn main() {
     let mut client = Client::builder(&token)
         .event_handler(Handler)
         .await
-        .expect("Err creating client");
+        .expect("Error creating client");
 
     // Finally, start a single shard, and start listening to events.
     //

@@ -1,6 +1,6 @@
 [package]
 name = "discord-uwu-webhook"
-version = "1.0.0"
+version = "1.0.1"
 authors = ["bs2kbs2k <bs2k@naver.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
